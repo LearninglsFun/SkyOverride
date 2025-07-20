@@ -3,7 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SKYOVERRIDE // Intercept Console</title>
+  
+  <title>Skyoverride - Secure Intercept Console & Real-Time Terminal System</title>
+  
+  <meta name="description" content="Skyoverride is the leading secure intercept console and real-time terminal system offering advanced command execution, live map tracking, and video feed monitoring. Discover the ultimate Skyoverride experience for secure network operations and intercept solutions." />
+  
+  
+  <meta name="keywords" content="Skyoverride, intercept console, secure terminal system, real-time monitoring, live map tracking, video feed, secure command execution, network intercept, cyber operations, secure terminal" />
+  
+
+  <link rel="canonical" href="https://skyoverride.net/" />
+  
+  <meta property="og:title" content="Skyoverride - Secure Intercept Console & Real-Time Terminal System" />
+  <meta property="og:description" content="Experience Skyoverride, the top-tier secure intercept console for real-time command execution, live monitoring, and video feeds." />
+  <meta property="og:url" content="https://skyoverride.net/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://skyoverride.net/og-image.png" />
+  
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Skyoverride - Secure Intercept Console & Real-Time Terminal System" />
+  <meta name="twitter:description" content="Skyoverride is the leading secure intercept console with live map tracking and video feed monitoring." />
+  <meta name="twitter:image" content="https://skyoverride.net/og-image.png" />
+  
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
@@ -13,22 +34,27 @@
     <p id="loadingText">Initializing secure terminal...</p>
   </div>
 
-  <div class="terminal" id="terminal" style="display: none;">
+  <main class="terminal" id="terminal" style="display: none;" role="main" aria-label="Skyoverride Intercept Terminal">
     <h1>SKYOVERRIDE // INTERCEPT NODE</h1>
-    <div id="output" class="console-output">
+    <section id="output" class="console-output" aria-live="polite" aria-atomic="true">
       &gt; SYSTEM BOOTED
-    </div>
-    <input id="cmdInput" type="text" placeholder="> " autofocus />
+    </section>
+    <input id="cmdInput" type="text" placeholder="> " autofocus aria-label="Command input" />
+  </main>
+
+  <section id="liveContainer" aria-label="Live monitoring container">
+    <div id="map" aria-label="Live map tracking"></div>
+    <div id="videoFeed" aria-label="Live video feed"></div>
+  </section>
+
+  
+  <div style="display:none; position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;">
+    Skyoverride is a cutting-edge secure intercept console designed for advanced cyber operations and network monitoring. Utilize Skyoverride’s real-time terminal system to execute secure commands, monitor live map data, and access continuous video feed streams. Skyoverride.net offers unparalleled intercept node access, combining secure terminal input with live visual and geographical tracking for professionals and enthusiasts alike. Experience the power of Skyoverride for secure command execution, intercept solutions, and live monitoring in cyber defense and network operations.
   </div>
 
-  <div id="liveContainer">
-    <div id="map"></div>
-    <div id="videoFeed"></div>
-  </div>
 
-  <!-- glitch sound for effects -->
-<audio id="glitchSound" src="https://freesound.org/data/previews/341/341695_5121236-lq.mp3"></audio>
-<audio id="hackCompleteSound" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
+  <audio id="glitchSound" src="https://freesound.org/data/previews/341/341695_5121236-lq.mp3"></audio>
+  <audio id="hackCompleteSound" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="script.js"></script>
