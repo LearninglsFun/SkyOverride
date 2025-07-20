@@ -10,7 +10,7 @@
 <body>
   <div id="loadingScreen">
     <h1>SKYOVERRIDE SYSTEM</h1>
-    <p>Initializing secure terminal...</p>
+    <p id="loadingText">Initializing secure terminal...</p>
   </div>
 
   <div class="terminal" id="terminal" style="display: none;">
@@ -21,9 +21,14 @@
     <input id="cmdInput" type="text" placeholder="> " autofocus />
   </div>
 
-  <div id="map"></div>
+  <div id="liveContainer">
+    <div id="map"></div>
+    <div id="videoFeed"></div>
+  </div>
 
-  <div id="videoFeed"></div>
+  <!-- glitch sound for effects -->
+<audio id="glitchSound" src="https://freesound.org/data/previews/341/341695_5121236-lq.mp3"></audio>
+<audio id="hackCompleteSound" src="https://freesound.org/data/previews/331/331912_3248244-lq.mp3"></audio>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="script.js"></script>

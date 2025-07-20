@@ -9,7 +9,6 @@ body {
   align-items: center;
 }
 
-/* === LOADING SCREEN === */
 #loadingScreen {
   width: 100%;
   height: 100vh;
@@ -80,23 +79,74 @@ h1 {
   50% { border-right: 1px solid #33ff33; }
 }
 
-#map {
+#liveContainer {
+  display: flex;
+  justify-content: space-between;
   width: 90%;
-  height: 30vh;
   margin-top: 10px;
+  gap: 10px;
+  min-height: 30vh;
+}
+
+#map {
+  width: calc(50% + 5%);
+  height: calc(30vh + 5vh);
   border: 2px solid #33ff33;
+  transition: all 0.5s ease;
+}
+
+
+input.busy {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 #videoFeed {
-  display: none;
-  width: 90%;
-  height: 25vh;
+  width: calc(50% + 5%);
+  height: calc(30vh + 5vh);
   background: black;
-  margin-top: 10px;
   border: 2px solid #33ff33;
-  display: flex;
+  display: none; /* hide by default */
   flex-direction: column;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 10px #33ff33;
+  transition: all 0.5s ease;
+  opacity: 0; /* hidden */
+  pointer-events: none;
+}
+
+#videoFeed.visible {
+  display: flex;  /* show when visible */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#videoFeed.fullscreen {
+  width: 100%;
+  height: 40vh;
+}
+
+@media (max-width: 768px) {
+  #liveContainer {
+    flex-direction: column;
+  }
+  #map, #videoFeed {
+    width: 100%;
+  }
+  @media (min-width: 1024px) {
+  #map, #videoFeed {
+    width: calc(50% + 10%);
+    height: calc(30vh + 10vh);
+  }
+}
+
+@media (min-width: 1440px) {
+  #map, #videoFeed {
+    width: calc(50% + 15%);
+    height: calc(30vh + 15vh);
+  }
+}
+
 }
