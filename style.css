@@ -1,0 +1,102 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: black;
+  color: #33ff33;
+  font-family: "Courier New", Courier, monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* === LOADING SCREEN === */
+#loadingScreen {
+  width: 100%;
+  height: 100vh;
+  background: black;
+  color: #33ff33;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  position: fixed;
+  z-index: 9999;
+}
+
+.terminal {
+  width: 90%;
+  max-width: 800px;
+  height: 40vh;
+  margin-top: 10px;
+  border: 2px solid #33ff33;
+  background-color: #000;
+  padding: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 0 15px #33ff33;
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  margin: 0 0 10px 0;
+  font-weight: normal;
+  font-size: 1.5rem;
+}
+
+.console-output {
+  flex-grow: 1;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  line-height: 1.3em;
+  font-size: 1rem;
+  scrollbar-width: none;
+}
+.console-output::-webkit-scrollbar {
+  display: none;
+}
+
+#cmdInput {
+  width: 100%;
+  background: black;
+  border: none;
+  border-top: 1px solid #33ff33;
+  color: #33ff33;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  margin-top: 5px;
+  padding: 5px;
+  caret-color: #33ff33;
+  animation: blink-caret 1s step-end infinite;
+}
+
+@keyframes blink-caret {
+  from, to { border-right: 1px solid transparent; }
+  50% { border-right: 1px solid #33ff33; }
+}
+
+#map {
+  width: 90%;
+  height: 30vh;
+  margin-top: 10px;
+  border: 2px solid #33ff33;
+}
+
+#videoFeed {
+  display: none;
+  width: 90%;
+  height: 25vh;
+  background: black;
+  margin-top: 10px;
+  border: 2px solid #33ff33;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px #33ff33;
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SKYOVERRIDE // Intercept Console</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+  <div id="loadingScreen">
+    <h1>SKYOVERRIDE SYSTEM</h1>
+    <p>Initializing secure terminal...</p>
+  </div>
+
+  <div class="terminal" id="terminal" style="display: none;">
+    <h1>SKYOVERRIDE // INTERCEPT NODE</h1>
+    <div id="output" class="console-output">
+      &gt; SYSTEM BOOTED
+    </div>
+    <input id="cmdInput" type="text" placeholder="> " autofocus />
+  </div>
+
+  <div id="map"></div>
+
+  <div id="videoFeed"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
