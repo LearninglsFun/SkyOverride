@@ -3,8 +3,9 @@ const output = document.getElementById('output');
 const videoFeed = document.getElementById('videoFeed');
 const terminal = document.getElementById('terminal');
 const loadingScreen = document.getElementById('loadingScreen');
-const glitchSound = document.getElementById('glitchSound');
-const hackCompleteSound = document.getElementById('hackCompleteSound');
+const liveContainer = document.getElementById('liveContainer');
+const mapDiv = document.getElementById('map');
+
 
 let authenticated = false;
 let currentDrone = null;
@@ -15,11 +16,27 @@ let commandHistory = [];
 let historyIndex = -1;
 let droneMoveInterval;
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const startOverlay = document.getElementById('startOverlay');
+  // Show the overlay only after DOM is ready
+  startOverlay.style.display = 'flex';
+
+  // Start the flicker effect
+  let flickerInterval = setInterval(() => {
+    startOverlay.style.opacity = (Math.random() * 0.3 + 0.7).toFixed(2);
+  }, 100);
+
+  // The rest of your code that initializes event listeners etc.
+  // For example, your click handler to begin boot sequence
+  startOverlay.addEventListener('click', beginBootSequence);
+  document.addEventListener('keydown', beginBootSequence, { once: true });
+});
+
 function print(msg) {
   const line = document.createElement('div');
   output.appendChild(line);
   let i = 0;
-  playGlitchSound();
   const interval = setInterval(() => {
     line.innerHTML += msg.charAt(i);
     i++;
@@ -30,30 +47,14 @@ function print(msg) {
   }, 10 + Math.random() * 15);
 }
 
-function playGlitchSound() {
-  if (glitchSound) {
-    glitchSound.volume = 0.3;
-    glitchSound.currentTime = 0;
-    glitchSound.play().catch(() => {});
-  }
-}
-
-function playHackCompleteSound() {
-  if (hackCompleteSound) {
-    hackCompleteSound.volume = 0.5;
-    hackCompleteSound.currentTime = 0;
-    hackCompleteSound.play().catch(() => {});
-  }
-}
 
 function setBusy(busy) {
   isBusy = busy;
-  // Don't disable input — just style it to show it's "busy"
   if (busy) {
     input.classList.add('busy');
   } else {
     input.classList.remove('busy');
-    input.focus(); // Auto-refocus once done
+    input.focus();
   }
 }
 
@@ -61,20 +62,98 @@ window.addEventListener('keydown', () => {
   if (document.activeElement !== input) input.focus();
 });
 
+// Your existing code, with a key fix:  
+// When calling showLiveContainers(), ensure map and videoFeed are visible.
+
+function showLiveContainers() {
+  // Show main live container
+  liveContainer.style.display = 'flex';
+  liveContainer.style.visibility = 'visible';
+  liveContainer.style.opacity = '1';
+
+  // Show map
+  mapDiv.style.display = 'flex'; // match your layout
+  mapDiv.style.visibility = 'visible';
+  mapDiv.style.opacity = '1';
+
+  // Show video feed
+  videoFeed.style.display = 'flex';
+  videoFeed.style.visibility = 'visible';
+  videoFeed.style.opacity = '1';
+
+  // Invalidate map size after container becomes visible
+  if (map) {
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300); // delay to allow layout changes to apply
+  }
+}
+
 
 function bootSequence() {
-  loadingScreen.style.display = 'none';
-  terminal.style.display = 'flex';
   const bootMessages = [
     "[SYSCHK] Initializing tactical terminal...",
     "[COMMS] Establishing uplink with interceptor grid...",
     "[SIGINT] Drone signal triangulation matrix online.",
     "[NAVSYS] Terrain overlay systems initialized.",
-    "[AUTH] Awaiting command authorization. TYPE 'override' TO GAIN ACCESS."
+    "[AUTH] Awaiting command authorization.",
+    "[AUTH] TYPE 'override' TO GAIN ACCESS."
   ];
+
+  terminal.style.display = 'flex';
+  let delay = 0;
+
   bootMessages.forEach((msg, i) => {
-    setTimeout(() => print(msg), i * 1000);
+    setTimeout(() => {
+      print(msg);
+      if (i === bootMessages.length - 1) {
+  if (input) input.focus();
+}
+    }, i * 1000);
   });
+}
+
+function startTransitionSequence() {
+  loadingScreen.style.transition = 'opacity 1.2s ease-in-out';
+  loadingScreen.style.opacity = '0';
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 400);
+
+  setTimeout(() => {
+    // Hide loading screen
+    loadingScreen.style.display = 'none';
+    loadingScreen.style.visibility = 'hidden';
+
+    // Show terminal
+    terminal.style.display = 'flex';
+    terminal.style.visibility = 'visible';
+    terminal.style.opacity = '1';
+    terminal.style.zIndex = '9997';
+
+    // Show container, map and video feed with fade-in
+    liveContainer.style.display = 'flex';
+    liveContainer.style.visibility = 'visible';
+    liveContainer.style.opacity = '1';
+
+    mapDiv.style.visibility = 'visible';
+    mapDiv.style.opacity = '1';
+
+    videoFeed.style.visibility = 'visible';
+    videoFeed.style.opacity = '1';
+
+    mapDiv.style.display = 'flex';
+    videoFeed.style.display = 'flex';
+
+    bootSequence();
+
+    const menu = document.getElementById("mainMenu");
+    if (menu) {
+      menu.classList.remove('hidden');
+      menu.classList.add('fade-in');
+    }
+  }, 1300);
 }
 
 input.addEventListener('keydown', e => {
@@ -126,12 +205,9 @@ function handleCommand(cmd) {
       if (!currentDrone) return print("[ERR] No valid drone target locked.");
       startHack();
       break;
-     case 'fasttrack': fastTrack(); 
-     break;
-     case 'fasthack': fastHack(); 
-     break;
-     case 'fastdebug': fastDebug();  
-     break;
+    case 'fasttrack': fastTrack(); break;
+    case 'fasthack': fastHack(); break;
+    case 'fastdebug': fastDebug(); break;
     case 'feed':
       if (!currentDrone || !feedActive) {
         print("[ERR] FEED UNAVAILABLE. HACK REQUIRED.");
@@ -159,6 +235,8 @@ function handleCommand(cmd) {
   }
 }
 
+
+
 function startTracking() {
   setBusy(true);
   print("[SIGINT] SCANNING EASTERN SECTOR...");
@@ -172,6 +250,7 @@ function startTracking() {
       print(`[ACQ] UAS SIGNATURE LOCKED: ${currentDrone.name}`);
       print(`[LOC] GRID: ${currentDrone.mgrs}`);
       print(`[INFO] Model: ${currentDrone.model} | Altitude: ${currentDrone.alt}m | Battery: ${currentDrone.battery}% | Threat Level: ${currentDrone.threat}`);
+      showLiveContainers(); // <-- show map + feed containers side by side
       showMap(currentDrone);
       setBusy(false);
       simulateDroneMovement();
@@ -201,6 +280,50 @@ function startHack() {
   }, 1500);
 }
 
+function fastTrack() {
+  setBusy(true);
+  print("[SIGINT] RAPID SECTOR SCAN INITIATED...");
+  setTimeout(() => {
+    currentDrone = simulateDrone();
+    print(`[ACQ] QUICK UAS LOCK: ${currentDrone.name}`);
+    print(`[LOC] GRID: ${currentDrone.mgrs}`);
+    print(`[INFO] Model: ${currentDrone.model} | Altitude: ${currentDrone.alt}m | Battery: ${currentDrone.battery}% | Threat Level: ${currentDrone.threat}`);
+    showLiveContainers();
+    showMap(currentDrone);
+    setBusy(false);
+    simulateDroneMovement();
+  }, 3000);
+}
+
+const fakeAIChatter = [
+  "[AI] System diagnostic nominal.",
+  "[AI] Autonomous protocols engaged.",
+  "[AI] Environmental sensors online.",
+  "[AI] Target acquisition algorithms active.",
+  "[AI] Energy reserves stable.",
+  "[AI] Signal interference detected, compensating.",
+];
+
+const fakeErrors = [
+  "[ERR] Sensor calibration failed.",
+  "[WARN] Signal lost briefly.",
+  "[ERR] Unauthorized access attempt detected.",
+  "[WARN] Drone overheating.",
+  "[ERR] Firmware checksum mismatch.",
+  "[WARN] Low battery detected.",
+];
+
+function randomChatterAndErrors() {
+  if (!isBusy && terminal.style.display === 'flex' && Math.random() < 0.6) {
+    if (Math.random() < 0.6) {
+      print(fakeAIChatter[Math.floor(Math.random() * fakeAIChatter.length)]);
+    } else {
+      print(fakeErrors[Math.floor(Math.random() * fakeErrors.length)]);
+    }
+  }
+}
+setInterval(randomChatterAndErrors, 20000 + Math.random() * 20000);
+
 function simulateDrone() {
   const names = ['RU-921X-BT3', 'UKR-A30Z-C1', 'RU-FTZ9239Z', 'UKR-MK11P-DS', 'RU-Z93K-02L', 'UKR-QP1-2213', 'RU-T73-SKP9'];
   const name = names[Math.floor(Math.random() * names.length)];
@@ -215,228 +338,129 @@ function simulateDrone() {
 }
 
 function showMap({ lat, lon, mgrs }) {
-  if (!map) {
-    map = L.map('map').setView([lat, lon], 8);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-  }
-  if (droneMarker) map.removeLayer(droneMarker);
-  droneMarker = L.marker([lat, lon]).addTo(map)
-    .bindPopup(`${currentDrone.name}<br>${mgrs}`)
-    .openPopup();
-  map.panTo([lat, lon]);
+  setTimeout(() => {
+    if (!map) {
+      map = L.map('map', {
+        center: [lat, lon],
+        zoom: 8,
+        zoomControl: false,
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    } else {
+      map.setView([lat, lon], 8);
+    }
+
+    if (droneMarker) {
+      droneMarker.setLatLng([lat, lon]);
+    } else {
+      droneMarker = L.marker([lat, lon]).addTo(map).bindPopup(mgrs);
+    }
+
+    // Force resize to fix hidden map rendering issues
+    setTimeout(() => map.invalidateSize(), 300);
+  }, 100); // Delay until layout fully applies
 }
+
 
 function simulateDroneMovement() {
-  let dx = (Math.random() - 0.5) * 0.01;
-  let dy = (Math.random() - 0.5) * 0.01;
+  if (droneMoveInterval) clearInterval(droneMoveInterval);
   droneMoveInterval = setInterval(() => {
-    currentDrone.lat += dx;
-    currentDrone.lon += dy;
-    const newMgrs = `37T BT ${1000 + Math.floor(Math.random()*8000)} ${1000 + Math.floor(Math.random()*8000)}`;
-    currentDrone.mgrs = newMgrs;
-    droneMarker.setLatLng([currentDrone.lat, currentDrone.lon]);
-    droneMarker.bindPopup(`${currentDrone.name}<br>${newMgrs}`).openPopup();
-    map.panTo([currentDrone.lat, currentDrone.lon]);
-  }, 4000);
+    if (!currentDrone) return;
+    currentDrone.lat += (Math.random() - 0.5) * 0.02;
+    currentDrone.lon += (Math.random() - 0.5) * 0.02;
+    showMap(currentDrone);
+  }, 3000);
 }
 
-function fastTrack() {
-  setBusy(true);
-  print("[TRACK] Quickly locating nearby drone...");
-  
-      currentDrone = simulateDrone();
-      print(`[ACQ] UAS SIGNATURE LOCKED: ${currentDrone.name}`);
-      print(`[LOC] GRID: ${currentDrone.mgrs}`);
-      print(`[INFO] Model: ${currentDrone.model} | Altitude: ${currentDrone.alt}m | Battery: ${currentDrone.battery}% | Threat Level: ${currentDrone.threat}`);
-      showMap(currentDrone);
-      setBusy(false);
-      simulateDroneMovement();
-    }
-  ;
+function showFeed() {
+  if (!videoFeed || !currentDrone) return;
+
+  const STATIC_MS = 2000;
+  const EXPAND_MS = 1800;
+
+  // Add static flicker effect
+  videoFeed.innerHTML = `<div class="static"></div>`;
+  videoFeed.classList.add('static-effect');
+
+  // Prepare videoFeed for fullscreen expansion
+  videoFeed.classList.remove('fullscreen');
+  videoFeed.style.transition = `all ${EXPAND_MS}ms ease-in-out`;
+  void videoFeed.offsetWidth; // force reflow
+
+  // Expand to fullscreen after static
+  setTimeout(() => {
+    videoFeed.classList.add('fullscreen');
+    videoFeed.classList.remove('static-effect');
+  }, STATIC_MS);
+
+  // Inject the Rick Astley video after animation finishes
+  setTimeout(() => {
+    videoFeed.innerHTML = `
+      <iframe
+        width="100%" height="100%"
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0"
+        frameborder="0"
+        allow="autoplay; encrypted-media"
+        allowfullscreen>
+      </iframe>`;
+    terminal.style.display = 'none';
+  }, STATIC_MS + EXPAND_MS);
+
+  print(`[FEED] STREAMING LIVE VIDEO FROM ${currentDrone.name}`);
+}
+
+
 
 
 function fastHack() {
   if (!currentDrone) {
-    print("[ERR] No drone locked to hack.");
+    print("[ERR] No drone locked.");
     return;
   }
   setBusy(true);
-  print("[HACK] Quickly initiating drone hack...");
-  glitchEffect(800, () => {
-    print("[HACK] Drone hack complete. FEED AVAILABLE.");
+  print(`[OPS] QUICK HACK INITIATED ON ${currentDrone.name}...`);
+  setTimeout(() => {
+    print(`[COMPLETE] ${currentDrone.name} OVERRIDE SUCCESSFUL.`);
     feedActive = true;
-    playHackCompleteSound();
+    print(`[CTRL] Feed command now available.`);
     setBusy(false);
-  });
-}
-
-function fastDebug() {
-  print("[DEBUG] Quick system status check...");
-  print(`Authenticated: ${authenticated}`);
-  print(`Current Drone: ${currentDrone ? JSON.stringify(currentDrone) : "None"}`);
-  print(`Feed Active: ${feedActive}`);
-  print(`Busy: ${isBusy}`);
-}
-
-function cancelOperation() {
-  print("[SYS] Operation aborted by user.");
-  setBusy(false);
-  glitchEffect(500, () => {}); // small glitch effect on cancel
-}
-
-function initMap(lat, lng) {
-  map = L.map('map').setView([lat, lng], 15);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 19,
-  }).addTo(map);
-
-  droneMarker = L.marker([lat, lng]).addTo(map);
-
-  // To fix map rendering bug when container changes visibility
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 300);
-}
-
-function glitchEffect(duration = 2000, callback) {
-  const terminal = document.getElementById("terminal");
-  const glitchSound = document.getElementById("glitchSound");
-
-  // Play the sound only once
-  if (glitchSound) {
-    glitchSound.volume = 0.2; // Lowered volume
-    glitchSound.currentTime = 0;
-    glitchSound.play().catch(() => {});
-  }
-
-  let glitchCount = 0;
-  const maxGlitches = 10;
-
-  const glitchInterval = setInterval(() => {
-    if (glitchCount % 2 === 0) {
-      terminal.style.filter = `blur(${Math.random() * 1.5}px)`;
-      terminal.style.transform = `translate(${Math.random() * 3}px, ${Math.random() * 3}px)`;
-    } else {
-      terminal.style.filter = 'none';
-      terminal.style.transform = 'none';
-    }
-
-    glitchCount++;
-    if (glitchCount > maxGlitches) {
-      clearInterval(glitchInterval);
-      terminal.style.filter = 'none';
-      terminal.style.transform = 'none';
-      if (callback) callback();
-    }
-  }, duration / maxGlitches);
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  glitchSound.load();
-  hackCompleteSound.load();
-  animatedLoadingText();
-  setTimeout(bootSequence, 3000);
-});
-
-function showFeed() {
-  if (!feedActive) {
-    print("[ERR] Feed not unlocked.");
-    return;
-  }
-  print("[FEED] Attempting real-time uplink... Signal integrity low.");
-  setBusy(true);
-
-  // Show videoFeed side-by-side with map
-  videoFeed.classList.add('visible');
-  videoFeed.classList.remove('fullscreen');
-
-  // Reset styles for side-by-side mode (not fullscreen)
-  Object.assign(videoFeed.style, {
-    position: 'relative',  // normal flow next to map
-    top: '',
-    left: '',
-    width: '50%',
-    height: '30vh',
-    backgroundColor: 'black',
-    zIndex: '1',
-    overflow: 'hidden',
-  });
-
-  // Show static canvas inside videoFeed
-  videoFeed.innerHTML = `<canvas id="fakeStatic" style="width:100%; height:100%; display:block;"></canvas>`;
-
-  const canvas = document.getElementById('fakeStatic');
-  const ctx = canvas.getContext('2d');
-
-  function resizeCanvas() {
-    canvas.width = videoFeed.clientWidth;
-    canvas.height = videoFeed.clientHeight;
-  }
-  resizeCanvas();
-
-  function drawStatic() {
-    resizeCanvas();
-    const img = ctx.createImageData(canvas.width, canvas.height);
-    for (let i = 0; i < img.data.length; i += 4) {
-      const v = Math.random() * 255;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-      img.data[i + 3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-
-  const staticInterval = setInterval(drawStatic, 100);
-
-  // After static duration, show YouTube video and switch to fullscreen
-  setTimeout(() => {
-    clearInterval(staticInterval);
-    print("[FEED] Signal recovered — establishing real-time video uplink...");
-
-    setTimeout(() => {
-      // Switch videoFeed to fullscreen overlay
-      videoFeed.classList.add('fullscreen');
-      Object.assign(videoFeed.style, {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'black',
-        zIndex: '9999',
-        overflow: 'hidden',
-      });
-
-      // Replace static canvas with YouTube iframe
-      videoFeed.innerHTML = `
-        <iframe width="100%" height="100%" 
-          src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0&showinfo=0&rel=0" 
-          frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
-        </iframe>
-        <p style="
-          position: absolute; 
-          bottom: 10px; 
-          width: 100%; 
-          text-align: center; 
-          color: #0f0; 
-          font-family: monospace; 
-          user-select: none;">
-          [CTRL] Drone interface initialized.
-        </p>
-      `;
-      setBusy(false);
-    }, 3000);
   }, 4000);
 }
 
-function animatedLoadingText() {
-  const loadingText = document.getElementById('loadingText');
-  const base = "Initializing secure terminal";
-  let dotCount = 0;
-  setInterval(() => {
-    dotCount = (dotCount + 1) % 4;
-    loadingText.textContent = base + ".".repeat(dotCount);
-  }, 600);
+function fastDebug() {
+  print("[DBG] DEBUG MODE ENGAGED.");
+  print("[DBG] AUTH STATUS: " + (authenticated ? "AUTHORIZED" : "UNAUTHORIZED"));
+  print("[DBG] DRONE LOCK: " + (currentDrone ? currentDrone.name : "NONE"));
+  print("[DBG] FEED ACTIVE: " + feedActive);
+  print("[DBG] BUSY: " + isBusy);
 }
 
+window.onload = () => {
+  // Show loading screen
+  loadingScreen.style.display = 'flex';
+  loadingScreen.style.visibility = 'visible';
+  loadingScreen.style.opacity = '1';
+  loadingScreen.style.zIndex = '9998';
+
+  // Make sure everything else is hidden
+  terminal.style.display = 'none';
+  terminal.style.visibility = 'hidden';
+  terminal.style.opacity = '0';
+  terminal.style.zIndex = '-1';
+
+  liveContainer.style.display = 'none';
+  liveContainer.classList.remove('visible');
+  liveContainer.style.visibility = 'hidden';
+  liveContainer.style.opacity = '0';
+  liveContainer.style.zIndex = '-1';
+
+  mapDiv.style.display = 'none';
+  mapDiv.classList.remove('visible');
+  videoFeed.style.display = 'none';
+  videoFeed.classList.remove('visible');
+
+  // Begin boot transition
+  setTimeout(() => {
+    startTransitionSequence();
+  }, 1500);
+};
